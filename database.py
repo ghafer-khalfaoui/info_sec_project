@@ -1,4 +1,3 @@
-# database.py
 
 # Bell-LaPadula Clearances: 3=Top Secret, 2=Secret, 1=Confidential, 0=Unclassified
 users = {
@@ -12,10 +11,10 @@ roles_permissions = {
     "User": ["Read", "Write"]
 }
 
-# Files store their data as ENCRYPTED binary strings.
+
 files = {
     "report.txt": {
-        "content": "",  # Will be populated when the main program starts
+        "content": "",
         "classification": 2, 
         "owner": "dhafer"
     }
