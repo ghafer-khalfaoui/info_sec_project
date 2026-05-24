@@ -1,8 +1,6 @@
-# main.py
+
 import tkinter as tk
 from tkinter import messagebox, simpledialog 
-
-# Import our custom modules
 import database
 import sdes
 import access_control
@@ -112,10 +110,10 @@ class SecureFSApp:
                 
             elif action == "Write":
                 
-                # This opens a pop-up asking the user what to write
+               
                 user_input = simpledialog.askstring("Input Data", f"Enter text to add to '{filename}':")
                 
-                # If the user clicks "Cancel" or leaves it blank, we stop the process
+               
                 if not user_input:
                     self.lbl_status.config(text="Write operation cancelled.", fg="blue")
                     return
