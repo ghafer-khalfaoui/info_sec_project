@@ -1,4 +1,3 @@
-
 class SDES:
     def __init__(self, key="1010000010"):
         self.key = key
@@ -11,6 +10,20 @@ class SDES:
         self.S0 = [[1, 0, 3, 2], [3, 2, 1, 0], [0, 2, 1, 3], [3, 1, 3, 2]]
         self.S1 = [[0, 1, 2, 3], [2, 0, 1, 3], [3, 0, 1, 0], [2, 1, 0, 3]]
         self.k1, self.k2 = self.generate_keys(self.key)
+
+    def encrypt_caesar(self, text, shift=3):
+        encrypted = ""
+        for char in text:
+            encrypted += chr((ord(char) + shift) % 1114112)
+        return ''.join(format(ord(c), '08b') for c in encrypted)
+
+    def decrypt_caesar(self, binary_str, shift=3):
+        chars = [chr(int(binary_str[i:i+8], 2)) for i in range(0, len(binary_str), 8)]
+        text = "".join(chars)
+        decrypted = ""
+        for char in text:
+            decrypted += chr((ord(char) - shift) % 1114112)
+        return decrypted
 
     def permute(self, bits, mapping):
         return "".join([bits[i - 1] for i in mapping])
@@ -29,27 +42,20 @@ class SDES:
     def generate_keys(self, key):
         p10_key = self.permute(key, self.P10)
         left, right = p10_key[:5], p10_key[5:]
-        
         left1, right1 = self.left_shift(left, 1), self.left_shift(right, 1)
         k1 = self.permute(left1 + right1, self.P8)
-        
         left2, right2 = self.left_shift(left1, 2), self.left_shift(right1, 2)
         k2 = self.permute(left2 + right2, self.P8)
-        
         return k1, k2
 
     def fk(self, bits, key):
         left, right = bits[:4], bits[4:]
         ep_right = self.permute(right, self.EP)
         xor_res = self.xor(ep_right, key)
-        
         s0_res = self.sbox_lookup(xor_res[:4], self.S0)
         s1_res = self.sbox_lookup(xor_res[4:], self.S1)
-        
         p4_res = self.permute(s0_res + s1_res, self.P4)
-        new_left = self.xor(left, p4_res)
-        
-        return new_left + right
+        return self.xor(left, p4_res) + right
 
     def encrypt_block(self, block):
         ip_bits = self.permute(block, self.IP)
@@ -60,19 +66,17 @@ class SDES:
 
     def decrypt_block(self, block):
         ip_bits = self.permute(block, self.IP)
-        fk1_res = self.fk(ip_bits, self.k2) # Decryption uses K2 first
+        fk1_res = self.fk(ip_bits, self.k2)
         swapped = fk1_res[4:] + fk1_res[:4]
-        fk2_res = self.fk(swapped, self.k1) # Then K1
+        fk2_res = self.fk(swapped, self.k1)
         return self.permute(fk2_res, self.IP_INV)
 
     def encrypt_text(self, text):
         binary = ''.join(format(ord(c), '08b') for c in text)
         blocks = [binary[i:i+8] for i in range(0, len(binary), 8)]
-        encrypted_blocks = [self.encrypt_block(b) for b in blocks]
-        return ''.join(encrypted_blocks)
+        return ''.join([self.encrypt_block(b) for b in blocks])
 
     def decrypt_text(self, encrypted_binary):
         blocks = [encrypted_binary[i:i+8] for i in range(0, len(encrypted_binary), 8)]
-        decrypted_blocks = [self.decrypt_block(b) for b in blocks]
-        chars = [chr(int(b, 2)) for b in decrypted_blocks]
+        chars = [chr(int(self.decrypt_block(b), 2)) for b in blocks]
         return ''.join(chars)
