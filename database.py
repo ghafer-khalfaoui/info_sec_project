@@ -1,4 +1,4 @@
-
+#this file is optional it can be deleted with no problems 
 # Bell-LaPadula Clearances: 3=Top Secret, 2=Secret, 1=Confidential, 0=Unclassified
 users = {
     "dhafer": {"password": "123", "role": "Admin", "clearance": 3},
